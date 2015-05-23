@@ -1,10 +1,12 @@
 require 'curses'
 
-include Curses
-
 class UI
-  def initialize(config)
+  include Curses 
+  attr_reader :sniffer, :sort_mode, :sort_order
+
+  def initialize(config, sniffer)
     @config = config
+    @sniffer = sniffer
 
     init_screen
     cbreak
@@ -32,6 +34,47 @@ class UI
       'B' => "sort by bandwidth",
       'T' => "toggle sort order (asc|desc)"
     }
+    
+    @done = false
+
+    # set default display options
+    @sort_mode  = :reqsec
+    @sort_order = :desc
+  end
+
+  def run(sniffer)
+    # main loop
+    until @done do
+      header
+      footer
+      render_stats
+      refresh
+
+      key = self.input_handler
+      case key
+        when /[Qq]/
+          done = true
+        when /[Cc]/
+          @sort_mode = :calls
+        when /[Ss]/
+          @sort_mode = :objsize
+        when /[Rr]/
+          @sort_mode = :reqsec
+        when /[Bb]/
+          @sort_mode = :bw
+        when /[Tt]/
+          if @sort_order == :desc
+            @sort_order = :asc
+          else
+            @sort_order = :desc
+          end
+      end
+    end
+    self.clean_up
+  end
+
+  def done
+    @done = true  
   end
 
   def header
@@ -53,7 +96,7 @@ class UI
     addstr(sprintf "%-#{cols}s", footer_text)
   end
 
-  def render_stats(sniffer, sort_mode, sort_order = :desc)
+  def render_stats
     render_start_t = Time.now.to_f * 1000
 
     # subtract header + footer lines
@@ -141,7 +184,7 @@ class UI
     end
   end
 
-  def done
+  def clean_up
     nocbreak
     close_screen
   end

@@ -23,7 +23,7 @@ if @config[:json_output]
   time = @config[:capture_time]
   $stderr.puts "Capturing traffic for #{time} second(s)..."
   sleep time
-  metrics = sniffer.metrics.values.sort_by { |v| v[@config[:sort_mode]] }
+  metrics = sniffer.metrics.values.sort_by { |v| v[@config[:sort_mode]] }.reverse
   puts JSON::generate(metrics)
 
 else

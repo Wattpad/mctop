@@ -124,7 +124,7 @@ class UI
     # reset colours for main key display
     attrset(color_pair(0))
 
-    top = ordered_metrics(metrics, sort_mode, sort_order)
+    top = sniffer.ordered_metrics(sort_mode, sort_order)
 
     for i in 0..maxlines-1
       # default to blank line
@@ -153,15 +153,6 @@ class UI
     attrset(color_pair(2))
     setpos(lines-2, cols-18)
     addstr(sprintf "rt: %8.3f (ms)", runtime)
-  end
-
-  def ordered_metrics(metrics, sort_mode, sort_order)
-    ordered = metrics.values.sort { |a,b| a[sort_mode] <=> b[sort_mode] }
-
-    unless sort_order == :asc
-      ordered.reverse!
-    end
-    ordered
   end
 
   def input_handler

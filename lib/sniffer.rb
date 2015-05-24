@@ -11,11 +11,6 @@ class MemcacheSniffer
     @discard_thresh = config[:discard_thresh]
 
     @metrics = {}
-    @metrics[:calls]   = {}
-    @metrics[:objsize] = {}
-    @metrics[:reqsec]  = {}
-    @metrics[:bw]    = {}
-
     @packet_stats = { :recv => 0, :drop => 0 }
 
     @semaphore = Mutex.new
@@ -24,7 +19,7 @@ class MemcacheSniffer
   def start
     cap = Pcap::Capture.open_live(@source, 1500)
 
-    @metrics[:start_time] = Time.new.to_f
+    @start_time = Time.new.to_f
     @done    = false
 
     if @host == ""
@@ -42,13 +37,9 @@ class MemcacheSniffer
         bytes = $2
 
         @semaphore.synchronize do
-          if @metrics[:calls].has_key?(key)
-            @metrics[:calls][key] += 1
-          else
-            @metrics[:calls][key] = 1
-          end
-
-          @metrics[:objsize][key] = bytes.to_i
+          @metrics[key] = { calls: 0 } unless @metrics.has_key? key
+          @metrics[key][:calls] += 1
+          @metrics[key][:objsize] = bytes.to_i
         end
       end
 
@@ -64,29 +55,16 @@ class MemcacheSniffer
 
   def metrics
     @semaphore.synchronize do
-      next if @metrics[:start_time].nil?
+      next if @start_time.nil?
       # we may have seen no packets received on the sniffer thread
-      elapsed = Time.now.to_f - @metrics[:start_time]
+      elapsed = Time.now.to_f - @start_time
 
       # iterate over all the keys in the metrics hash and calculate some values
-      @metrics[:calls].each do |k,v|
-        reqsec = v / elapsed
-
-        # if req/sec is <= the discard threshold delete those keys from
-        # the metrics hash - this is a hack to manage the size of the
-        # metrics hash in high volume environments
-        if reqsec <= @discard_thresh
-          @metrics[:calls].delete(k)
-          @metrics[:objsize].delete(k)
-          @metrics[:reqsec].delete(k)
-          @metrics[:bw].delete(k)
-        else
-          @metrics[:reqsec][k]  = v / elapsed
-          @metrics[:bw][k]    = ((@metrics[:objsize][k] * @metrics[:reqsec][k]) * 8) / 1000
-        end
-      end
+      @metrics.each    { |k,v| v[:reqsec] = v[:calls] / elapsed }
+              .keep_if { |k,v| v[:reqsec] > @discard_thresh }
+              .each    { |k,v| v[:bw] = ((v[:objsize] * v[:reqsec]) * 8) / 1000 }
     end
-    @metrics.dup
+    {}.merge(@metrics)
   end
 
   def done

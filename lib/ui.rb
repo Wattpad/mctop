@@ -117,20 +117,23 @@ class UI
     attrset(color_pair(2))
     header_summary = sprintf "%-28s %-14s %-30s",
       "sort mode: #{sort_mode.to_s} (#{sort_order.to_s})",
-      "keys: #{metrics[:calls].keys.count}",
+      "keys: #{metrics.count}",
       "packets (recv/dropped): #{packet_stats[:recv]} / #{packet_stats[:drop]} (#{loss}%)"
     addstr(sprintf "%-#{cols}s", header_summary)
 
     # reset colours for main key display
     attrset(color_pair(0))
 
-    top = metrics[sort_mode].sort { |a,b| a[1] <=> b[1] }
+    top = metrics.sort { |a,b| a[1][sort_mode] <=> b[1][sort_mode] }
 
     unless sort_order == :asc
       top.reverse!
     end
 
     for i in 0..maxlines-1
+      # default to blank line
+      line = " "*cols
+
       if i < top.length
         k = top[i][0]
         v = top[i][1]
@@ -143,17 +146,15 @@ class UI
           display_key = k
         end
 
-        # render each key
-        line = sprintf "%-#{@key_col_width}s %9.d %9.d %9.2f %9.2f",
-                 display_key,
-                 metrics[:calls][k],
-                 metrics[:objsize][k],
-                 metrics[:reqsec][k],
-                 metrics[:bw][k]
-      else
-        # we're not clearing the display between renders so erase past
-        # keys with blank lines if there's < maxlines of results
-        line = " "*cols
+        # only render once all attributes have been set
+        if v.size >= 4
+          line = sprintf "%-#{@key_col_width}s %9.d %9.d %9.2f %9.2f",
+                   display_key,
+                   v[:calls],
+                   v[:objsize],
+                   v[:reqsec],
+                   v[:bw]
+        end  
       end
 
       setpos(1+i, 0)

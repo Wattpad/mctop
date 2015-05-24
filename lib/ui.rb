@@ -146,15 +146,12 @@ class UI
           display_key = k
         end
 
-        # only render once all attributes have been set
-        if v.size >= 4
-          line = sprintf "%-#{@key_col_width}s %9.d %9.d %9.2f %9.2f",
-                   display_key,
-                   v[:calls],
-                   v[:objsize],
-                   v[:reqsec],
-                   v[:bw]
-        end  
+        line = sprintf "%-#{@key_col_width}s %9.d %9.d %9.2f %9.2f",
+                 display_key,
+                 item[:calls],
+                 item[:objsize],
+                 item[:reqsec],
+                 item[:bw]
       end
 
       setpos(1+i, 0)

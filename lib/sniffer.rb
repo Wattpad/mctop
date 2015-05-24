@@ -55,8 +55,9 @@ class MemcacheSniffer
 
   def metrics
     @semaphore.synchronize do
-      next if @start_time.nil?
       # we may have seen no packets received on the sniffer thread
+      return {} if @start_time.nil?
+
       elapsed = Time.now.to_f - @start_time
 
       # iterate over all the keys in the metrics hash and calculate some values

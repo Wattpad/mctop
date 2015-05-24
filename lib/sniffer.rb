@@ -69,12 +69,8 @@ class MemcacheSniffer
   end
 
   def ordered_metrics(sort_mode, sort_order)
-    ordered = metrics.values.sort { |a,b| a[sort_mode] <=> b[sort_mode] }
-
-    unless sort_order == :asc
-      ordered.reverse!
-    end
-    ordered
+    ordered = metrics.values.sort_by { |v| v[sort_mode] }
+    return (sort_order == :desc) ? ordered.reverse : ordered
   end
 
   def done

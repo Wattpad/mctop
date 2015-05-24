@@ -15,7 +15,8 @@ class MemcacheSniffer
     @metrics[:objsize] = {}
     @metrics[:reqsec]  = {}
     @metrics[:bw]    = {}
-    @metrics[:stats]   = { :recv => 0, :drop => 0 }
+
+    @packet_stats = { :recv => 0, :drop => 0 }
 
     @semaphore = Mutex.new
   end
@@ -33,7 +34,7 @@ class MemcacheSniffer
     end
 
     cap.loop do |packet|
-      @metrics[:stats] = cap.stats
+      @packet_stats = cap.stats
 
       # parse key name, and size from VALUE responses
       if packet.raw_data =~ /VALUE (\S+) \S+ (\S+)/
@@ -58,7 +59,7 @@ class MemcacheSniffer
   end
 
   def packet_stats
-    @metrics[:stats]
+    @packet_stats
   end
 
   def metrics

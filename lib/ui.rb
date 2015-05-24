@@ -104,7 +104,7 @@ class UI
     offset   = 1
 
     # calculate packet loss ratio
-    metrics = sniffer.metrics
+    metrics = sniffer.ordered_metrics(sort_mode, sort_order)
     packet_stats = sniffer.packet_stats
     if packet_stats[:recv] > 0
       loss = sprintf("%5.2f", (packet_stats[:drop].to_f / packet_stats[:recv].to_f) * 100)
@@ -124,14 +124,12 @@ class UI
     # reset colours for main key display
     attrset(color_pair(0))
 
-    top = sniffer.ordered_metrics(sort_mode, sort_order)
-
     for i in 0..maxlines-1
       # default to blank line
       line = " "*cols
 
-      if i < top.length
-        item = top[i]
+      if i < metrics.length
+        item = metrics[i]
         # if the key is too wide for the column truncate it and add an ellipsis
         key = item[:key]
         display_key = key.length > @key_col_width ? "#{key[0..@key_col_width-4]}..." : key

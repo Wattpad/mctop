@@ -124,27 +124,17 @@ class UI
     # reset colours for main key display
     attrset(color_pair(0))
 
-    top = metrics.sort { |a,b| a[1][sort_mode] <=> b[1][sort_mode] }
-
-    unless sort_order == :asc
-      top.reverse!
-    end
+    top = ordered_metrics(metrics, sort_mode, sort_order)
 
     for i in 0..maxlines-1
       # default to blank line
       line = " "*cols
 
       if i < top.length
-        k = top[i][0]
-        v = top[i][1]
-
+        item = top[i]
         # if the key is too wide for the column truncate it and add an ellipsis
-        if k.length > @key_col_width
-          display_key = k[0..@key_col_width-4]
-          display_key = "#{display_key}..."
-        else
-          display_key = k
-        end
+        key = item[:key]
+        display_key = key.length > @key_col_width ? "#{key[0..@key_col_width-4]}..." : key
 
         line = sprintf "%-#{@key_col_width}s %9.d %9.d %9.2f %9.2f",
                  display_key,
@@ -163,6 +153,15 @@ class UI
     attrset(color_pair(2))
     setpos(lines-2, cols-18)
     addstr(sprintf "rt: %8.3f (ms)", runtime)
+  end
+
+  def ordered_metrics(metrics, sort_mode, sort_order)
+    ordered = metrics.values.sort { |a,b| a[sort_mode] <=> b[sort_mode] }
+
+    unless sort_order == :asc
+      ordered.reverse!
+    end
+    ordered
   end
 
   def input_handler

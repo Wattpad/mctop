@@ -49,6 +49,11 @@ class CmdLine
         @config[:sort_mode] = sort_mode 
       end
 
+      @config[:max_items] = 5
+      opt.on '-m', '--max-items=N', Integer, 'Max number of items to output' do |max_items|
+        @config[:max_items] = max_items
+      end
+
       opt.separator ""
 
       opt.on_tail '-h', '--help', 'Show usage info' do

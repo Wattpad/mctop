@@ -43,7 +43,7 @@ class CmdLine
         @config[:capture_time] = capture_time
       end
 
-      @config[:sort_mode] = :reqseq
+      @config[:sort_mode] = :reqsec
       opt.on '-s', '--sort-by=METRIC', [:reqsec, :objsize, :bw],
              "Metric to sort by.  Options: reqsec, objsize, bw (default: #{@config[:sort_mode]})" do |sort_mode|
         @config[:sort_mode] = sort_mode 

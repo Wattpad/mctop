@@ -38,7 +38,7 @@ class UI
     @done = false
 
     # set default display options
-    @sort_mode  = :reqsec
+    @sort_mode  = @config[:sort_mode]
     @sort_order = :desc
   end
 

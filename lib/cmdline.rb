@@ -30,6 +30,27 @@ class CmdLine
         @config[:refresh_rate] = refresh_rate
       end
 
+      @config[:json_output] = false
+      opt.on '-j', '--json-output', 'Output json array of top keys' do |json_output|
+        @config[:json_output] = json_output
+      end
+
+      opt.separator ""
+      opt.separator "In json-output mode:"
+
+      @config[:capture_time] = 5
+      opt.on '-t', '--capture-time=S', Integer, "In json-output mode: amount of time in S spent collecting stats (default: #{@config[:capture_time]})" do |capture_time|
+        @config[:capture_time] = capture_time
+      end
+
+      @config[:sort_mode] = :reqseq
+      opt.on '-s', '--sort-by=METRIC', [:reqsec, :objsize, :bw],
+             "Metric to sort by.  Options: reqsec, objsize, bw (default: #{@config[:sort_mode]})" do |sort_mode|
+        @config[:sort_mode] = sort_mode 
+      end
+
+      opt.separator ""
+
       opt.on_tail '-h', '--help', 'Show usage info' do
         puts opts
         exit

@@ -37,7 +37,7 @@ class MemcacheSniffer
         bytes = $2
 
         @semaphore.synchronize do
-          @metrics[key] = { calls: 0 } unless @metrics.has_key? key
+          @metrics[key] = { key: key, calls: 0 } unless @metrics.has_key? key
           @metrics[key][:calls] += 1
           @metrics[key][:objsize] = bytes.to_i
         end

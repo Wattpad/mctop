@@ -14,22 +14,30 @@ require 'json'
 
 @config = CmdLine.parse(ARGV)
 
-# instantiate a sniffer and user interface object
 sniffer = MemcacheSniffer.new(@config)
-ui      = UI.new(@config, sniffer)
-
-# trap most of the typical signals
-%w[ INT QUIT HUP KILL ].each do |sig|
-  Signal.trap(sig) do
-    puts "** Caught signal #{sig} - exiting"
-    ui.done
-  end
-end
 
 # kick the sniffer thread off
 sniff_thread = Thread.new { sniffer.start }
 
-ui.run(sniffer)
+if @config[:json_output]
+  time = @config[:capture_time]
+  $stderr.puts "Capturing traffic for #{time} second(s)..."
+  sleep time
+  metrics = sniffer.metrics.values.sort_by { |v| v[@config[:sort_mode]] }
+  puts JSON::generate(metrics)
+
+else
+  ui = UI.new(@config, sniffer)
+
+  # trap most of the typical signals
+  %w[ INT QUIT HUP KILL ].each do |sig|
+    Signal.trap(sig) do
+      puts "** Caught signal #{sig} - exiting"
+      ui.done
+    end
+  end
+  ui.run(sniffer)
+end
 
 sniffer.done
 
